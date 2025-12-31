@@ -6,7 +6,7 @@ The neuron is modelled as a data-driven predictor which predicts the future outp
 The control signal from the neuron is an impulse delivered to the system when the neuron spikes. The strength of the impulse is fixed, and hence two neurons with opposite spike signs are needed to deliver both positive and negative control actions. It is observed that greater control performance is achieved when the neurons receive the impulses from other neurons in addition to the system output, i.e., when the neurons are connected in a network. Performance is also observed to improve with more than two neurons in the network.
 
 ## Results
-To illustrate the performance of the Spiking Data-Driven Controller, we consider control of a simple spring-mass-damper system using a fully connected network of spiking neurons. As illustrated below, the network receives the system output as well as the spikes from all other neurons in the network as inputs. The input to the system is the sum of the spikes from all neurons in the network.
+To illustrate the performance of the Spiking Data-Driven Controller, we consider control of a simple spring-mass-damper system using a fully connected network of spiking neurons. As illustrated below, each neuron receives the system output (the mass position) as well as the spikes from all other neurons in the network as inputs. The input to the system is the sum of the spikes from all neurons in the network.
 
 ![Illustration](./Figures/SMD_sys.png)
 
