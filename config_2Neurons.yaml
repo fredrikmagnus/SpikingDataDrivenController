@@ -1,0 +1,118 @@
+# Spiking Network Controller - Configuration
+
+simulation:
+  simulation_time: 100            # Total simulation time in seconds
+  base_seed: 1                    # Base random seed for controllers
+
+  reference_signal:
+    signal_type: step             # Type of reference signal (step, sine)
+    step:
+      amplitude: 1.0              # Amplitude of the step signal
+      sign_flips: 5               # Number of flips in the step signal
+    sine:
+      frequency: 0.1              # Frequency of the sine wave
+      amplitude: 1.0              # Amplitude of the sine wave
+      phase: 0.0                  # Phase shift of the sine wave
+      offset: 0                  # Offset of the sine wave
+
+spiking_network:
+  n_neurons: 2                    # Number of neurons in the spiking network
+  connectivity: full               # Options: full, sign-alternating, sparse, none, custom
+
+  controller:
+    gamma: 0.99                   # Forgetting factor for covariance matrices
+    Lp: 10                          # Length of observation horizon
+    Lf: 5                           # Length of prediction horizon
+    mu: 5e-2                       # Spike cost parameter
+    lambda_ridge: 1e-3             # Ridge regression regularization parameter
+
+    combine_spike_channels: null   # Combine 'all' spike channels or by 'sign' (set to null for individual channels)
+
+    update_on_spike: True         # Update weights of a neuron only when it has recently spiked (when its output buffer is not empty)
+
+    spike_force:
+      variability: false           # Enable/disable spike force variability
+      mean: 1                   # Mean of Gaussian distribution for spike forces
+      std: 0                    # Standard deviation of Gaussian distribution
+
+    reference_tracking_cost:
+      enable: plant              # Enable reference tracking cost for specific inputs (none, plant, spiking, all)
+      cost: 1                # Cost for reference tracking
+      discount_factor: 1       # Discount factor for future reference tracking costs (set to 1 to disable)
+
+    variance_minimizing_cost: 0 # Enable variance minimizing cost (spike or not spike based on which has lower epistemic variance)
+
+  custom_connectivity:
+    adjacency_matrix: [
+      [0, 0, 0, 0, 0, 0, 0, 0, 1],
+      [0, 0, 0, 0, 0, 0, 0, 0, 1],
+      [0, 0, 0, 0, 0, 0, 0, 0, 1],
+      [0, 0, 0, 0, 0, 0, 0, 0, 1],
+      [0, 0, 0, 0, 0, 0, 0, 0, 1],
+      [0, 0, 0, 0, 0, 0, 0, 0, 1],
+      [0, 0, 0, 0, 0, 0, 0, 0, 1],
+      [0, 0, 0, 0, 0, 0, 0, 0, 1],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0]
+      ]  # Custom adjacency matrix for connectivity (set to null to disable)
+    feedforward_connectivity: null      # Number of neurons in each layer (input, hidden, output). Overrides adjacency_matrix
+    ext_in: [1, 1, 1, 1, 1, 1, 1, 1, 0]                # External input connections for each neuron (plant -> controller)
+    ext_out: [1, -1, 1, -1, 1, -1, 1, -1, 1]               # External output connections for each neuron (controller -> plant)
+
+  
+
+plant:
+  type: spring_mass               # Options: spring_mass, double_integrator, first_order, external_signal
+  measurement_noise_amplitude: 0.  # Measurement noise amplitude
+  sampling_time: 0.05              # Sampling time for the plant simulation
+
+  # Spring-mass-damper parameters
+  spring_mass:
+    m: 1.0                       # Mass
+    k: 1.0                       # Spring constant
+    c: 0.3                       # Damping coefficient
+    pos_init: 0.                 # Initial position
+    vel_init: -0.1               # Initial velocity
+  
+  # Double integrator parameters
+  double_integrator:
+    damping: 0.3                 # Damping coefficient
+    pos_init: 0.0                # Initial position
+    vel_init: -0.1               # Initial velocity
+  
+  # First order system parameters
+  first_order:
+    tau: 1.0                     # Time constant
+    y_init: 0.0                  # Initial output
+
+  external_signal:
+    type: pattern                 # Options: pattern, sine, step
+    pattern:
+      pattern: [1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] # Custom pattern for the external signal (to be repeated)
+    step:
+      amplitude: 1.0              # Amplitude of the step signal
+      sign_flips: 0                    # Number of flips in the step signal
+    sine:
+      frequency: 0.1              # Frequency of the sine wave
+      amplitude: 1.0              # Amplitude of the sine wave
+      phase: 0.0                  # Phase shift of the sine wave
+      offset: 0.0                  # Offset of the sine wave
+
+plotting:
+  show_legends: True             # Show legends in plots
+  highlight_range: null           # Range to highlight in plots (set to null to disable)
+
+  compare_predictions: true       # Compare predictions
+  plot_response: true          # Plot the system response
+  plot_voltage_threshold: true     # Plot voltage and threshold for each controller
+  plot_variance: False            # Plot epistemic variance for each controller
+
+  plot_matrices:
+    indices: [0]  # Indices of neurons to plot matrices for (or null for all neurons)
+    plot_covariance_matrices: true  # Plot covariance matrices
+    plot_gain_matrices: false        # Plot gain matrices
+    plot_connectivity_matrices: false  # Plot the connectivity matrices
+
+  animate_response: False          # Animate the system response
+  animate_network: False          # Animate the spiking network
+  save_animations: false          # Save animations to disk
+
