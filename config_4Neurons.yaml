@@ -21,7 +21,7 @@ spiking_network:
 
   controller:
     gamma: 0.99                   # Forgetting factor for covariance matrices
-    Lp: 10                          # Length of observation horizon
+    Lp: 10                          # Length of memory horizon
     Lf: 5                           # Length of prediction horizon
     mu: 1e-1                       # Spike cost parameter
     lambda_ridge: 1e-3             # Ridge regression regularization parameter
@@ -30,34 +30,10 @@ spiking_network:
 
     update_on_spike: True         # Update weights of a neuron only when it has recently spiked (when its output buffer is not empty)
 
-    spike_force:
-      variability: false           # Enable/disable spike force variability
-      mean: 1                   # Mean of Gaussian distribution for spike forces
-      std: 0                    # Standard deviation of Gaussian distribution
-
     reference_tracking_cost:
       enable: plant              # Enable reference tracking cost for specific inputs (none, plant, spiking, all)
       cost: 1                # Cost for reference tracking
       discount_factor: 1       # Discount factor for future reference tracking costs (set to 1 to disable)
-
-    variance_minimizing_cost: 0 # Enable variance minimizing cost (spike or not spike based on which has lower epistemic variance)
-
-  custom_connectivity:
-    adjacency_matrix: [
-      [0, 0, 0, 0, 0, 0, 0, 0, 1],
-      [0, 0, 0, 0, 0, 0, 0, 0, 1],
-      [0, 0, 0, 0, 0, 0, 0, 0, 1],
-      [0, 0, 0, 0, 0, 0, 0, 0, 1],
-      [0, 0, 0, 0, 0, 0, 0, 0, 1],
-      [0, 0, 0, 0, 0, 0, 0, 0, 1],
-      [0, 0, 0, 0, 0, 0, 0, 0, 1],
-      [0, 0, 0, 0, 0, 0, 0, 0, 1],
-      [0, 0, 0, 0, 0, 0, 0, 0, 0]
-      ]  # Custom adjacency matrix for connectivity (set to null to disable)
-    feedforward_connectivity: null      # Number of neurons in each layer (input, hidden, output). Overrides adjacency_matrix
-    ext_in: [1, 1, 1, 1, 1, 1, 1, 1, 0]                # External input connections for each neuron (plant -> controller)
-    ext_out: [1, -1, 1, -1, 1, -1, 1, -1, 1]               # External output connections for each neuron (controller -> plant)
-
   
 
 plant:

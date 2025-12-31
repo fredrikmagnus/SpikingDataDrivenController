@@ -34,7 +34,7 @@ class Controller(BaseModel):
     exponential_traces: ExponentialTraces = ExponentialTraces()
     spike_force: SpikeForce = SpikeForce()
     reference_tracking_cost: ReferenceTrackingCost = ReferenceTrackingCost()
-    variance_minimizing_cost: float = Field(1.0, description="Cost for variance minimization")
+    variance_minimizing_cost: float = Field(0.0, description="Cost for variance minimization")
 
 class CustomConnectivity(BaseModel):
     adjacency_matrix: Optional[List[List[float]]] = Field(None, description="Custom adjacency matrix for connectivity")

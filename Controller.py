@@ -18,12 +18,12 @@ class SpikingController:
         self.p_out = 1 # Number of outputs (from the controller, to the plant)
         self.Lp = controller_config.Lp  # Length of past buffer
         self.Lf = controller_config.Lf  # Length of future buffer
-        self.gamma = controller_config.gamma + 0*np.random.normal(0, 1e-3)**2  # Forgetting factor for the covariance matrices
-        self.lambda_ridge = controller_config.lambda_ridge + 0*np.random.normal(0, 1e-4)**2  # Ridge regularization parameter
+        self.gamma = controller_config.gamma
+        self.lambda_ridge = controller_config.lambda_ridge
         self.reference_tracking_cost = reference_tracking_cost
         self.reference_tracking_cost_enable = reference_tracking_cost_enable
 
-        self.mu = controller_config.mu + 0*np.random.normal(0, 1e-3)**2  # Spike cost parameter
+        self.mu = controller_config.mu
 
         self.Q = self.set_cost_matrices()  # Cost matrices for reference tracking and input prediction
 
@@ -106,13 +106,8 @@ class SpikingController:
             self.y_buf[:, -1] += self.gamma_trace*y_buf_last # Add the decayed last output to the current output
             
 
-        # If t < L (Initial phase), collect data and return a random spike
+        # If t < L (Initial phase, buffers not full), collect data and return a random spike
         if k < self.L:
-            # u_t = np.random.uniform(0, 1, (self.p_out, 1))
-            # Sample u_t from a Bernoulli distribution with p=0.2
-            # if k == 0:
-            #     u_t = np.ones((self.p_out, 1)) 
-            # else:
             p = 0.2
             u_t = np.ones((self.p_out, 1)) * (self.rng.random((self.p_out, 1)) < p)
             self.u_buf = np.roll(self.u_buf, shift=-1, axis=1)
@@ -148,20 +143,6 @@ class SpikingController:
                 self.Sigma = self.gamma * self.Sigma + (1 - self.gamma) * (h_t @ h_t.T + self.lambda_ridge * np.eye(self.d))
             self.Sigma_inv = np.linalg.inv(self.Sigma)
 
-        # elif self.controller_config.exponential_traces.enable != None:
-        #     y_f = self.y_buf[:, -self.Lf:].reshape(-1, 1)
-        #     h_t = np.concatenate((
-        #         self.u_buf.flatten(), 
-        #         self.y_buf[:, :-self.Lf].flatten()
-        #         )).reshape(-1, 1)
-            
-        #     gamma_eff = 1 + (self.gamma-1) * self.u_buf[:, -1]
-
-        #     self.Psi = gamma_eff*self.Psi + (1-gamma_eff) * y_f@h_t.T
-        #     self.Sigma = gamma_eff * self.Sigma + (1 - gamma_eff) * (h_t @ h_t.T + self.lambda_ridge * np.eye(self.d))
-        #     self.Sigma_inv = np.linalg.inv(self.Sigma)
-
-
         # 3. Collect most recent Lp outputs and inputs
         u_p = self.u_buf[:, -self.Lp:]
         y_p = self.y_buf[:, -self.Lp:]
@@ -192,10 +173,6 @@ class SpikingController:
         y_pred_s = K @ h_s # Predicted output with spike
         y_pred_ns = K @ h_ns # Predicted output without spike
 
-        # print(y_pred_s.shape)
-
-        #if self.save_predictions:
-        
         # Epistemic uncertainty estimation:
         epistemic_var_spike = self.lambda_ridge*h_s.T @ self.Sigma_inv @ h_s
         self.epistemic_variance_spike.append(epistemic_var_spike.flatten()[0])
@@ -211,44 +188,24 @@ class SpikingController:
         V_epistemic = (epistemic_var_spike - epistemic_var_nospike)
         V_epistemic *= self.controller_config.variance_minimizing_cost
             
-        # Voltage = (y_pred_ns - y_ref).T @ self.Q @ (y_pred_ns - y_ref) - (y_pred_s - y_ref).T @ self.Q @ (y_pred_s - y_ref)
         Voltage = V_ref + V_epistemic
-        # V_noise = np.random.normal(0, 3e-2, size=Voltage.shape)  # Add some noise to the voltage
-        # Voltage += V_noise
-
-        # # Attempt at adaptive threshold:
-        # tr = np.trace(self.Sigma_inv)
-        # tau_max = self.d / self.lambda_ridge
-        # tau_min = 0.5 * tau_max
-        # ratio = np.clip((tr - tau_min) / (tau_max - tau_min), 0.0, 1.0)
-
-        # Threshold = self.mu * (1 - 2 * ratio)
 
         Threshold = self.mu
 
         # Spike condition:
         # spike = (Voltage >= Threshold)
-        
         # Additional condition to prevent multiple spikes in a row (refractory period)
         spike = (Voltage >= Threshold) and self.u_buf[:, -1].sum() < self.p_out
 
         if spike:
             self.predictions.append(y_pred_s)
             epistemic_var = epistemic_var_spike
-
-            # print(epistemic_var_spike, epistemic_var_nospike, epistemic_var_spike - epistemic_var_nospike, "SPIKE")
-            # epistemic_var = self.lambda_ridge*h_s.T @ self.Sigma_inv @ h_s 
         else:
             self.predictions.append(y_pred_ns)
             epistemic_var = epistemic_var_nospike
-            # print(epistemic_var_spike, epistemic_var_nospike, epistemic_var_spike - epistemic_var_nospike, self.u_buf[:, -1].sum())
-            # epistemic_var = self.lambda_ridge*h_ns.T @ self.Sigma_inv @ h_ns
             
         self.epistemic_variance.append(epistemic_var.flatten()[0]) # Store the epistemic variance for the chosen action
     
-        # Only spike if no spike in the last Lf steps (to keep consistent with the spike vs no-spike prediction)
-        # spike = (Voltage >= Threshold) and self.u_buf[:, self.Lp:].sum() == 0 
-        
         # print(self.u_buf, self.u_buf[:, self.Lp:])
         u_t = np.ones((self.p_out, 1)) * spike
 
@@ -270,8 +227,6 @@ class SpikingController:
                 self.y_buf[:self.m_in_plant, -1] = 0
             elif self.controller_config.exponential_traces.enable == 'all':
                 self.y_buf[:, -1] = 0
-        
-
 
         return u_t, Voltage, Threshold
 
