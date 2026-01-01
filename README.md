@@ -17,5 +17,5 @@ Using a network of eight spiking neurons, the system is able to accurately track
 
 
 ## Usage
-To run the simulation, simply execute the `run.py` script. The simulation parameters are specified in a configuration file in YAML format. Configuration files for 2, 4, and 8 neurons are provided in the repository, and can be adapted as desired.
+To run the simulation, execute the `run.py` script after installing the required dependencies. The simulation parameters are specified in a configuration file in YAML format. Configuration files for two, four, and eight neurons are provided in the repository, and can be adapted as desired.
 
