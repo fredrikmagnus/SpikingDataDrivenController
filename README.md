@@ -11,7 +11,7 @@ To illustrate the performance of the Spiking Data-Driven Controller we consider 
 ![Illustration](./Figures/SMD_sys.png)
 
 
-Using a network of eight spiking neurons, the system is able to accurately track a reference signal, as shown below. The left figure shows the mass position (black) tracking the reference signal (red) over time, with spikes from the eight neurons shown in the raster plot below. The right figure gives a zoomed-in view. Note that at the start of the simulation the neurons have no prior knowledge of the system dynamics, but learn to control the plant within a few seconds of interaction.
+Using a network of eight spiking neurons, the system is able to accurately track a reference signal, as shown below. The left figure shows the mass position (black) tracking the reference signal (red) over time, with spikes from the eight neurons shown in the raster plot below. The right figure gives a zoomed-in view. Note that at the start of the simulation the neurons have no prior knowledge of the dynamics, but learn to control the plant within a few seconds of interaction.
 | ![Response](./Figures/8NeuronControl.png) | ![Response_zoom](./Figures/8NeuronControl_zoom.png) |
 |:---:|:---:|
 
