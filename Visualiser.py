@@ -124,12 +124,9 @@ class Visualiser:
         for i in range(n_neurons):
             spike_times = time_axis[spikes[:, i] > 0]
             if len(spike_times) > 0:
-                # Label for each controller
-                label = f'C{i+1}'
-                
                 ax2.eventplot([spike_times], lineoffsets=0.1 + i*0.8/n_neurons, 
                             linelengths=0.8/n_neurons, colors=[colors[i]], 
-                            linewidths=2, label=label)
+                            linewidths=2)
                 spike_detected = True
         
         if spike_detected:
@@ -144,8 +141,6 @@ class Visualiser:
         ax2.grid(True, alpha=0.3)
         ax2.set_xlabel('Time (s)')
         ax2.set_yticks([])  # Remove y-ticks from spike raster plot
-        if show_legends:
-            ax2.legend()
 
         plt.tight_layout()
         plt.show()
